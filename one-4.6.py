@@ -279,7 +279,6 @@ plt.show()
 '''
 #设置坐标轴
 '''
-
 import matplotlib.pyplot as plt
 import numpy as np
 x=np.linspace(-3,3,50)
@@ -303,7 +302,9 @@ print(new_ticks)
 plt.xticks(new_ticks)#x范围
 plt.yticks([-2,-1.8,1],['s','n','m'])#y轴特定值所指字母
 
+
 #设置坐标轴2
+
 ax=plt.gca()
 ax.spines['right'].set_color('none')#将右边框显示为透明，
 ax.spines['top'].set_color('none')#上边框隐藏
@@ -314,4 +315,270 @@ ax.spines['bottom'].set_position(('data',0))
 #将左侧边框移动到x=0位置
 ax.spines['left'].set_position(('data',0))
 plt.show()
+
+
 '''
+#lengend图例
+'''
+l1,=plt.plot(x,y2,label='up')#绘制两条曲线，标签为up
+l2,=plt.plot(x,y1,color='red',linewidth=1.0,linestyle='--',label='down')#绘制两条曲线，标签为down
+#handles指定要用的线条对象，labels覆盖原有标签名，最后一个选择最佳位置
+plt.legend(handles=[l1,l2],labels=['up','down'],loc='best')
+plt.show()
+'''
+#annotation标注
+'''
+import matplotlib.pyplot as plt
+import numpy as np
+x=np.linspace(-3,3,50)
+y=2*x+1
+plt.figure(num=1,figsize=(8,5),)
+plt.plot(x,y,)
+
+ax=plt.gca()
+ax.spines['right'].set_color('none')#将右边框显示为透明，
+ax.spines['top'].set_color('none')#上边框隐藏
+ax.xaxis.set_ticks_position('bottom')#设置x轴刻度线位置在底部
+ax.yaxis.set_ticks_position('left')#设置y轴刻度线位置在左侧
+#将底部边框移动到y=0位置，
+ax.spines['bottom'].set_position(('data',0))
+#将左侧边框移动到x=0位置
+ax.spines['left'].set_position(('data',0))
+
+
+
+
+x0=1
+y0=2*x0+1
+plt.scatter(x0,y0,s=50,color='b')
+plt.plot([x0,x0],[y0,y0],'k-',lw=2.5)
+
+plt.annotate(r'$2x+1=%s$'%y0,xy=(x0,y0),xycoords='data',xytext=(+30,-30),textcoords='dffset poins',
+             fontsize=16,arrowprops=dict(arrowstyle='->',connectionstyle='arc3,rad=.2'))
+
+
+plt.show()
+'''
+
+#tick能见度
+'''
+for label in ax.get_xticklabels()+ax.get_yticklabels():#获取x轴和y轴的所有刻度标签
+    label.set_fontsize(12)#将标签字体设置为12号
+    label.set_bbox(dict(facecolor='white',edgecolor='none',alpha=0.7))#为标题添加一个背景框，背景色为白，无边框，透明度70%
+plt.show()
+'''
+
+#scatter散点图
+'''
+import matplotlib.pyplot as plt
+import numpy as np
+
+x=1024                         #点的数量
+X=np.random.normal(0,1,x)#生成1024个x个坐标，均值为0，标准差为1
+Y=np.random.normal(0,1,x)
+T=np.arctan2(X,Y)#计算每个点的方位角，用作颜色值
+
+plt.scatter(X,Y,s=75,c=T,alpha=0.5)#s点的大小，c颜色映射到角度值，0.5半透明效果
+
+plt.xlim((-1.5,1.5))#x轴范围
+plt.ylim((-1.5,1.5))
+
+plt.show()
+'''
+
+#bar柱状图
+'''
+import matplotlib.pyplot as plt
+import numpy as np
+
+n=12
+X=np.arange(n)
+#生成12个0.5到1.0之间的随机数
+Y1=(1-X/float(n))*np.random.uniform(0.5,1.0,n)
+Y2=(1-X/float(n))*np.random.uniform(0.5,1.0,n)
+#.bar绘制柱状图，x,y位置，颜色和边框
+plt.bar(X,+Y1,facecolor='r',edgecolor='none')
+plt.bar(X,-Y2,facecolor='b',edgecolor='none')
+#将位置与数值一一对应
+for x,y in zip(X,Y1):
+    #柱子上写数字，距离自己定，保留两位小数，居中，垂直底部对齐
+    plt.text(x+0.4,y+0.05,'%.2f'%y,ha='center',va='bottom')
+for x,y in zip(X,Y2):
+    #垂直顶部对齐
+    plt.text(x+0.4,-y-0.05,'-%.2f'%y,ha='center',va='top')
+
+plt.xlim(-0.5,n)
+plt.xticks(())
+plt.ylim(-1.25,1.25)
+plt.yticks(())
+
+plt.show()
+'''
+
+#contours等高线图
+'''
+import matplotlib.pyplot as plt
+import numpy as np
+
+def f(x,y):
+    return (1-x/2+x**5+y**3)*np.exp(-x**2-y**2)
+    
+n=256
+x=np.linspace(-3,3,n)
+y=np.linspace(-3,3,n)
+
+#生成二维网格矩阵x和y，计算函数值
+X,Y=np.meshgrid(x,y)
+
+#绘制填充等高线，8：等高线层级数，0.75：透明度，使用热色调
+plt.contourf(X,Y,f(X,Y),8,alpha=0.75,cmap=plt.cm.hot)
+
+
+#绘制黑色等高线，线宽0.5，
+C=plt.contour(X,Y,f(X,Y),8,colors='black',linewidths=.5)
+
+#在等高线C上添加数值标签，标签嵌入线中，字号10
+plt.clabel(C,inline=True,fontsize=10)
+
+plt.xticks(())
+plt.yticks(())
+plt.show()
+'''
+#image图像
+'''
+import matplotlib.pyplot as plt
+import numpy as np
+
+#定义一个长度为9的一维数据，转成三行三列
+a=np.array([1,2,3,
+            4,5,6,
+            7,8,9]).reshape(3,3)
+
+#imshow将数组a显示为图像，色块样式，bone颜色映射（蓝黑白），图像原点位于左上
+plt.imshow(a,interpolation='nearest',cmap='bone',origin='upper')
+
+#添加颜色条，0.9颜色条高度缩短为0.9
+plt.colorbar(shrink=0.9)
+
+plt.xticks(())
+plt.yticks(())
+plt.show()
+'''
+#3D数据
+'''
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+fig=plt.figure()#创建图形窗口，函数
+
+#fig（figure类的方法）
+ax=fig.add_subplot(111,projection='3d')#在这个图形上添加一个3D坐标轴，
+
+X=np.arange(-4,4,0.25)#x轴范围-4到4，步长0.25,函数
+Y=np.arange(-4,4,0.25)
+X,Y=np.meshgrid(X,Y)#生成二维网格，函数
+
+R=np.sqrt(X**2+Y**2)#计算平方跟，函数
+Z=np.sin(R)#计算正弦值，函数
+
+#plt.get_cmap:函数，获取颜色映射表，ax.plot_surface():Axes3D类方法
+ax.plot_surface(X,Y,Z,rstride=1,cstride=1,cmap=plt.get_cmap('rainbow'))
+
+#Axes3D类方法
+ax.contourf(X,Y,Z,zdir='z',offset=-2,cmap='rainbow')
+#Axes3D类方法
+ax.set_zlim(-2,2)
+plt.show()
+'''
+#subplot多合显示
+'''
+import matplotlib.pyplot as plt
+
+plt.figure()
+
+plt.subplot(2,1,1)#创建坐标轴，位置二行一列第一个位置
+plt.plot([0,1],[0,1])#将点连成线
+
+plt.subplot(2,3,4)#二行三列第四个位置
+plt.plot([0,1],[0,2])
+
+plt.subplot(235)#简化版二行三列第五个位置
+plt.plot([0,1],[0,3])
+
+plt.subplot(236)
+plt.plot([0,1],[0,4])
+
+plt.show()
+'''
+#subplot分格显示
+'''
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+
+plt.figure()
+#3*3虚拟网格，位置是0行0列，横向跨三列，纵向占一行
+ax1=plt.subplot2grid((3,3),(0,0),colspan=3,rowspan=1)
+#在ax1上面画条线，x:1,2 y:1,2
+ax1.plot([1,2],[1,2])
+#ax1设置标题
+ax1.set_title('ax1')
+
+plt.show()
+
+'''
+#图中图
+'''
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+
+#figure函数返回一个fig实例对象
+fig=plt.figure()
+x=[1,2,3,4,5,6,7]
+y=[1,2,3,4,5,6,7]
+
+left,bottom,width,height=0.1,0.1,0.8,0.8#左下宽高
+#fig的一个子类对象
+ax1=fig.add_axes([left,bottom,width,height])
+
+ax1.plot(x,y,'r')
+ax1.set_xlabel('x')
+ax1.set_ylabel('y')
+ax1.set_title('ax1')
+
+left,bottom,width,height=0.2,0.6,0.25,0.25
+ax2=fig.add_axes([left,bottom,width,height])
+ax2.plot(x,y,'r')
+ax2.set_xlabel('x')
+ax2.set_ylabel('y')
+ax2.set_title('ax1')
+
+plt.axes([0.6,0.2,0.25,0.25])
+plt.plot(y,x,'g')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('ax2')
+
+plt.show()
+
+'''
+#次坐标轴
+'''
+import matplotlib.pyplot as plt
+import numpy as np
+x=np.arange(0,10,0.1)
+y1=0.05*x**2
+y2=-1*y1
+
+fig,ax1=plt.subplots()#返回一个画布，包含子图
+ax2=ax1.twinx()#还是figure的实例对象，另一子图，与ax1平级，twinx共享x轴
+ax1.plot(x,y1,'g-')
+ax2.plot(x,y2,'b--')
+
+ax1.set_xlabel('x')
+ax1.set_ylabel('y1')
+ax2.set_ylabel('y2')
+
+plt.show()
+'''
+
