@@ -1,0 +1,21 @@
+[
+    {"query": "阶段一的目标是什么？", "ground_truth": "大模型API"},
+    {"query": "阶段一第1-2周的技术任务是什么？", "ground_truth": "Python"},
+    {"query": "阶段一第1-2周的软实力任务是什么？", "ground_truth": "Git"},
+    {"query": "阶段一第3-4周的技术任务是什么？", "ground_truth": "requests"},
+    {"query": "阶段一第5-6周的技术任务是什么？", "ground_truth": "Embedding"},
+    {"query": "阶段一第7-8周的技术任务是什么？", "ground_truth": "LangChain"},
+    {"query": "阶段一第9-10周要做什么？", "ground_truth": "向量数据库"},
+    {"query": "面向对象程序设计的重点是什么？", "ground_truth": "类与对象"},
+    {"query": "概率论与数理统计要重点学习哪些内容？", "ground_truth": "贝叶斯"},
+    {"query": "离散数学的目标是什么？", "ground_truth": "及格"},
+    {"query": "阶段二的优先级排序是什么？", "ground_truth": "实习"},
+    {"query": "阶段二建议读哪两本书？", "ground_truth": "从0到1"},
+    {"query": "阶段三的技术学习目标是什么？", "ground_truth": "LangChain"},
+    {"query": "阶段三的认知任务是什么？", "ground_truth": "融资"},
+    {"query": "作者建议参加什么类型的竞赛？", "ground_truth": "黑客松"},
+    {"query": "大三下学期（3月到7月）的核心任务是什么？", "ground_truth": "暑期实习"},
+    {"query": "大三暑假（7月到9月）的实习目标是什么？", "ground_truth": "return"},
+    {"query": "大四阶段（9月到毕业）的秋招时间是什么时候？", "ground_truth": "9月"},
+    {"query": "作者建议毕业设计做什么方向？", "ground_truth": "智能客服"}
+]

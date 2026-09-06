@@ -1,10 +1,23 @@
+#网页界面工具：帮你画出网页上的按钮、输入框、文字显示区域
 import streamlit as st
+#文本切块工具：把PDF里长长的文字，切成适合向量检索的小块
 from langchain_text_splitters import RecursiveCharacterTextSplitter
+#向量化工具（智谱版）：调用智谱AI的embedding-2模型，把文字变成向量
 from langchain_community.embeddings import ZhipuAIEmbeddings
-from langchain_community.vectorstores import FAISS
+#大模型工具（智谱版）：调用智谱AI的glm-4-plus模型，生成最终答案
 from langchain_community.chat_models import ChatZhipuAI
-from langchain.chains import RetrievalQA
+#向量数据库工具：把向量存到磁盘（./chroma_db），支持持久化检索
+from langchain_chroma import Chroma
+#RAG问答链工具：把“检索”和“生成”串成一个完整的问答流程
+from langchain_classic.chains import RetrievalQA
+#PDF加载工具：读取PDF文件内容
+from langchain_community.document_loaders import PyPDFLoader
+#操作系统接口工具：帮你处理文件路径、检查文件夹是否存在
 import os
+#哈希计算工具：给文件生成一个独一无二的“指纹”（MD5值），用来区分不同PDF
+import hashlib
+#临时文件工具：在电脑上创建临时文件，用完自动删除
+import tempfile
 
 st.title("📚 PDF智能问答助手")
 
@@ -23,52 +36,68 @@ def init_llm():
 
 # ==================== 处理上传的PDF ====================
 def process_pdf(uploaded_file):
-    """处理上传的PDF - 修复中文路径问题"""
+    """处理上传的PDF - 支持持久化复用"""
 
+    # 1. 计算文件的唯一标识（基于文件名+内容哈希）
+    #.getvalue()_streamlit库中的UploadedFile 类中的方法
+    #.getvalue()获取文件原始数据
+    file_content = uploaded_file.getvalue()
+    #调用模块hashlib里面的函数md5   _Hash 对象的 hexdigest() 方法
+    ''''.md5()将文件的二进制内容file_content转化为一个固定长度的哈希对象，
+    .hexdigest()
+    将这个哈希对象转换为一串由32个十六进制字符（0 - 9
+    和a - f）组成的字符串，方便作为文件夹名'''
+    file_hash = hashlib.md5(file_content).hexdigest()
+    # 用哈希值作为子目录名，区分不同PDF
+    persist_dir = f"./chroma_db_{file_hash}"
 
+    embeddings = ZhipuAIEmbeddings(
+        model="embedding-2",
+        api_key=st.secrets["ZHIPU_API_KEY"]
+    )
+
+    # 2. 检查该PDF的向量库是否已存在且是一个文件夹
+    if os.path.exists(persist_dir) and os.path.isdir(persist_dir):
+        # ✅ 直接加载，跳过向量化
+        vectorstore = Chroma(
+            persist_directory=persist_dir,
+            embedding_function=embeddings
+        )
+        # 读取文档数量（从SQLite元数据中获取）
+        chunk_count = vectorstore._collection.count()
+        return vectorstore, chunk_count
+
+    # 3. 首次处理：向量化并持久化
     try:
-        #LangChain提供的PDF加载器，需要文件路径
-        from langchain_community.document_loaders import PyPDFLoader
-        #Python内置模块，用于创建临时文件
-        import tempfile
-
-        # 创建临时文件对象，赋值给变量tmp_file
+        '''tempfile.NamedTemporaryFile()：创建一个临时文件对象。
+           delete=False 表示关闭文件后不自动删除；suffix=".pdf" 指定文件扩展名为 .pdf；dir="." 表示在当前目录创建。
+           with ... as tmp_file：上下文管理器，确保文件在使用后正确关闭'''
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf", dir=".") as tmp_file:
-            #获取上传PDF的二进制内容,写入临时文件tmp_file
-            tmp_file.write(uploaded_file.getvalue())
-            #临时文件的路径保存到变量tmp_path
+            tmp_file.write(file_content)
+            #获取临时文件的路径。
             tmp_path = tmp_file.name
 
-        # 相对路径转成绝对路径
         abs_path = os.path.abspath(tmp_path)
-
-        # 加载PDF
         loader = PyPDFLoader(abs_path)
+        #返回一个包含文本内容的 Document 对象列表。
         docs = loader.load()
 
-        # 分割
         splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
         chunks = splitter.split_documents(docs)
 
-        # 向量化
-        embeddings = ZhipuAIEmbeddings(
-            model="embedding-2",
-            api_key=st.secrets["ZHIPU_API_KEY"]
+        # 创建向量库并持久化
+        vectorstore = Chroma.from_documents(
+            documents=chunks,
+            embedding=embeddings,
+            persist_directory=persist_dir
         )
-
-        # 创建向量库
-        vectorstore = FAISS.from_documents(chunks, embeddings)
 
         return vectorstore, len(chunks)
 
     except Exception as e:
-        #抛出一个异常，函数异常结束
         raise Exception(f"PDF处理失败: {str(e)}")
-    #最后一定会执行的代码
     finally:
-        # 确保清理临时文件
         try:
-            #locals()返回当前作用域所有局部变量的字典
             if 'tmp_path' in locals() and os.path.exists(tmp_path):
                 os.unlink(tmp_path)
         except:
@@ -149,7 +178,7 @@ if st.button("提交问题", disabled=not st.session_state.pdf_processed):
 
                 #as_retriever()：把向量库转换成检索器，用于搜索相似内容。
                 retriever=st.session_state.vectorstore.as_retriever(
-                    #检索最相关的k个文档块（k由滑块决定，默认3）
+                    search_type="similarity",
                     search_kwargs={"k": k_value}
                 ),
                 #返回检索到的原始文档片段
